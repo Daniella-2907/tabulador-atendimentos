@@ -1,7 +1,53 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Tabulador de Atendimentos</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1 class="mb-3">Tabulador de Atendimentos</h1>
+<p class="lead mb-4">
+    Simulação de uma ferramenta de CTI usada por times de atendimento: a ligação entra, a ficha do cliente abre
+    e a analista registra o motivo do contato. Cada tabulação alimenta o histórico e os indicadores da operação.
+</p>
 
-Welcome to your new app.
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">📞 Atendimento</h2>
+                <p class="text-muted mb-0">Simule uma ligação, veja a ficha do cliente e tabule o contato.</p>
+                <a href="atendimento" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">📋 Histórico</h2>
+                <p class="text-muted mb-0">Consulte todos os atendimentos, com filtro por motivo e data.</p>
+                <a href="historico" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">📊 Painel</h2>
+                <p class="text-muted mb-0">Acompanhe volume, taxa de resolução e tempo médio de atendimento.</p>
+                <a href="painel" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-light">
+    <div class="card-body">
+        <h2 class="h5">Sobre este projeto</h2>
+        <p>
+            Projeto de portfólio de <strong>Daniella Veronez</strong>, inspirado nas ferramentas que desenvolvo
+            para operações de atendimento. Os clientes são fictícios e os atendimentos ficam salvos apenas no seu navegador.
+        </p>
+        <p class="mb-0 text-muted">
+            C# · .NET 10 · Blazor WebAssembly · Bootstrap ·
+            <a href="https://github.com/Daniella-2907/tabulador-atendimentos" target="_blank">Ver o código no GitHub</a>
+        </p>
+    </div>
+</div>
