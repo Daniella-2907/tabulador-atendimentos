@@ -1,0 +1,157 @@
+@page "/atendimento"
+@implements IDisposable
+@inject TabulacaoService Servico
+
+<PageTitle>Atendimento</PageTitle>
+
+<h1 class="mb-4">Atendimento</h1>
+
+@if (cliente is null)
+{
+    <div class="card p-4 text-center">
+        <p class="mb-3">Nenhuma ligação em andamento.</p>
+        <div>
+            <button class="btn btn-primary btn-lg" @onclick="SimularLigacao">📞 Simular ligação</button>
+        </div>
+        @if (mensagem is not null)
+        {
+            <div class="alert alert-success mt-3 mb-0">@mensagem</div>
+        }
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Ligação em andamento</strong>
+                    <span class="badge bg-success fs-6">@TempoDecorrido</span>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title">@cliente.Nome</h4>
+                    <dl class="row mb-0">
+                        <dt class="col-4">CPF</dt><dd class="col-8">@cliente.CpfMascarado</dd>
+                        <dt class="col-4">Telefone</dt><dd class="col-8">@cliente.Telefone</dd>
+                        <dt class="col-4">Cidade</dt><dd class="col-8">@cliente.Cidade</dd>
+                        <dt class="col-4">Produto</dt><dd class="col-8">@cliente.Produto</dd>
+                    </dl>
+                </div>
+                <div class="card-footer">
+                    <strong>Últimos atendimentos</strong>
+                    @if (historico.Count == 0)
+                    {
+                        <p class="text-muted mb-0">Primeiro contato deste cliente.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var t in historico.Take(3))
+                            {
+                                <li>@t.Fim.ToString("dd/MM HH:mm") · @t.Motivo / @t.Submotivo @(t.Resolvido ? "✅" : "⏳")</li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header"><strong>Tabulação</strong></div>
+                <div class="card-body">
+                    <EditForm Model="tabulacao" OnValidSubmit="Salvar">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Motivo</label>
+                            <InputSelect class="form-select" @bind-Value="tabulacao.Motivo" @bind-Value:after="AoTrocarMotivo">
+                                <option value="">Selecione...</option>
+                                @foreach (var motivo in DadosFicticios.Motivos.Keys)
+                                {
+                                    <option value="@motivo">@motivo</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => tabulacao.Motivo" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Submotivo</label>
+                            <InputSelect class="form-select" @bind-Value="tabulacao.Submotivo" disabled="@string.IsNullOrEmpty(tabulacao.Motivo)">
+                                <option value="">Selecione...</option>
+                                @if (!string.IsNullOrEmpty(tabulacao.Motivo))
+                                {
+                                    foreach (var sub in DadosFicticios.Motivos[tabulacao.Motivo])
+                                    {
+                                        <option value="@sub">@sub</option>
+                                    }
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => tabulacao.Submotivo" />
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <InputCheckbox class="form-check-input" id="resolvido" @bind-Value="tabulacao.Resolvido" />
+                            <label class="form-check-label" for="resolvido">Problema resolvido nesta ligação</label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Observação</label>
+                            <InputTextArea class="form-control" rows="3" @bind-Value="tabulacao.Observacao" />
+                            <ValidationMessage For="() => tabulacao.Observacao" />
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Encerrar e salvar</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private Cliente? cliente;
+    private Tabulacao tabulacao = new();
+    private IReadOnlyList<Tabulacao> historico = [];
+    private string? mensagem;
+    private System.Timers.Timer? cronometro;
+
+    private string TempoDecorrido => (DateTime.Now - tabulacao.Inicio).ToString(@"mm\:ss");
+
+    private async Task SimularLigacao()
+    {
+        mensagem = null;
+        cliente = DadosFicticios.Clientes[Random.Shared.Next(DadosFicticios.Clientes.Count)];
+        historico = await Servico.ListarPorClienteAsync(cliente.Id);
+        tabulacao = new Tabulacao
+        {
+            ClienteId = cliente.Id,
+            ClienteNome = cliente.Nome,
+            Inicio = DateTime.Now
+        };
+
+        cronometro = new System.Timers.Timer(1000);
+        cronometro.Elapsed += (_, _) => InvokeAsync(StateHasChanged);
+        cronometro.Start();
+    }
+
+    private void AoTrocarMotivo() => tabulacao.Submotivo = "";
+
+    private async Task Salvar()
+    {
+        tabulacao.Fim = DateTime.Now;
+        await Servico.SalvarAsync(tabulacao);
+        mensagem = $"Atendimento de {cliente!.Nome} salvo em {tabulacao.Duracao:mm\\:ss}.";
+        cliente = null;
+        PararCronometro();
+    }
+
+    private void PararCronometro()
+    {
+        cronometro?.Stop();
+        cronometro?.Dispose();
+        cronometro = null;
+    }
+
+    public void Dispose() => PararCronometro();
+}
