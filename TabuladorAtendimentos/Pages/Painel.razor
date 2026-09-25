@@ -1,0 +1,86 @@
+@page "/painel"
+@inject TabulacaoService Servico
+
+<PageTitle>Painel</PageTitle>
+
+<h1 class="mb-4">Painel</h1>
+
+@if (tabulacoes is null)
+{
+    <p>Carregando...</p>
+}
+else if (tabulacoes.Count == 0)
+{
+    <div class="alert alert-light border">
+        Ainda não há atendimentos. <a href="atendimento">Simule uma ligação</a> para ver os indicadores.
+    </div>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Atendimentos</p>
+                    <p class="display-6 mb-0">@tabulacoes.Count</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Taxa de resolução</p>
+                    <p class="display-6 mb-0">@((TaxaResolucao * 100).ToString("F0"))%</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Tempo médio de atendimento</p>
+                    <p class="display-6 mb-0">@TempoMedio.ToString(@"mm\:ss")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><strong>Atendimentos por motivo</strong></div>
+        <div class="card-body">
+            @foreach (var grupo in PorMotivo)
+            {
+                var percentual = (double)grupo.Quantidade / tabulacoes.Count * 100;
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>@grupo.Motivo</span>
+                        <span class="text-muted">@grupo.Quantidade (@percentual.ToString("F0")%)</span>
+                    </div>
+                    <div class="progress" role="progressbar" aria-label="@grupo.Motivo">
+                        <div class="progress-bar" style="width: @percentual.ToString("F0")%"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<Tabulacao>? tabulacoes;
+
+    private double TaxaResolucao =>
+        tabulacoes!.Count(t => t.Resolvido) / (double)tabulacoes!.Count;
+
+    private TimeSpan TempoMedio =>
+        TimeSpan.FromSeconds(tabulacoes!.Average(t => t.Duracao.TotalSeconds));
+
+    private IEnumerable<(string Motivo, int Quantidade)> PorMotivo =>
+        tabulacoes!
+            .GroupBy(t => t.Motivo)
+            .Select(g => (Motivo: g.Key, Quantidade: g.Count()))
+            .OrderByDescending(x => x.Quantidade);
+
+    protected override async Task OnInitializedAsync()
+    {
+        tabulacoes = await Servico.ListarAsync();
+    }
+}

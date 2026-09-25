@@ -1,0 +1,101 @@
+@page "/historico"
+@inject TabulacaoService Servico
+
+<PageTitle>Histórico</PageTitle>
+
+<h1 class="mb-4">Histórico</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <label class="form-label">Motivo</label>
+        <select class="form-select" @bind="filtroMotivo">
+            <option value="">Todos</option>
+            @foreach (var motivo in DadosFicticios.Motivos.Keys)
+            {
+                <option value="@motivo">@motivo</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Data</label>
+        <input type="date" class="form-control" @bind="filtroData" />
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+        <button class="btn btn-outline-secondary" @onclick="LimparFiltros">Limpar filtros</button>
+    </div>
+</div>
+
+@if (tabulacoes is null)
+{
+    <p>Carregando...</p>
+}
+else if (!Filtradas.Any())
+{
+    <div class="alert alert-light border">
+        Nenhum atendimento encontrado. <a href="atendimento">Simule uma ligação</a> para começar.
+    </div>
+}
+else
+{
+    <p class="text-muted">@Filtradas.Count() atendimento(s)</p>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Cliente</th>
+                    <th>Motivo</th>
+                    <th>Submotivo</th>
+                    <th>Resolvido</th>
+                    <th>Duração</th>
+                    <th>Observação</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Filtradas)
+                {
+                    <tr>
+                        <td>@t.Fim.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@t.ClienteNome</td>
+                        <td>@t.Motivo</td>
+                        <td>@t.Submotivo</td>
+                        <td>
+                            @if (t.Resolvido)
+                            {
+                                <span class="badge bg-success">Sim</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Não</span>
+                            }
+                        </td>
+                        <td>@t.Duracao.ToString(@"mm\:ss")</td>
+                        <td class="text-muted">@t.Observacao</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<Tabulacao>? tabulacoes;
+    private string filtroMotivo = "";
+    private DateTime? filtroData;
+
+    private IEnumerable<Tabulacao> Filtradas =>
+        (tabulacoes ?? Array.Empty<Tabulacao>())
+            .Where(t => filtroMotivo == "" || t.Motivo == filtroMotivo)
+            .Where(t => filtroData is null || t.Fim.Date == filtroData.Value.Date);
+
+    protected override async Task OnInitializedAsync()
+    {
+        tabulacoes = await Servico.ListarAsync();
+    }
+
+    private void LimparFiltros()
+    {
+        filtroMotivo = "";
+        filtroData = null;
+    }
+}
