@@ -2,8 +2,9 @@
 
 Simulação de uma ferramenta de **CTI** usada por times de atendimento: a ligação entra, a ficha do cliente abre e a analista registra o motivo do contato. Cada tabulação alimenta o histórico e os indicadores da operação.
 
-**🔗 [Acesse a demo](https://daniella-2907.github.io/tabulador-atendimentos/)**
-<img width="1365" height="598" alt="image" src="https://github.com/user-attachments/assets/0981ef24-5c9d-4a87-b999-da0a6c1a54f8" />#
+**🔗 [Acesse a demo](https://daniella-2907.github.io/tabulador-atendimentos/)**#
+
+<img width="1365" height="598" alt="image" src="https://github.com/user-attachments/assets/0981ef24-5c9d-4a87-b999-da0a6c1a54f8" />
 
 <img width="1365" height="600" alt="image" src="https://github.com/user-attachments/assets/bdaeb212-f451-4719-a2d1-9bf487d61f71" />
 
